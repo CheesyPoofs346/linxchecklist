@@ -4,13 +4,11 @@ Install Fail2ban
 
 Protect against brute-force attacks:
 
-Copy code
 sudo apt-get install fail2ban
 
 
 Configure /etc/fail2ban/jail. local as needed and start the service:
 
-Copy code
 sudo systemctl start fail2ban
 sudo systemctl enable fail2ban
 
@@ -18,7 +16,6 @@ Install and Configure Lynis for Security Audits
 
 Run a security audit to identify issues:
 
-Copy code
 sudo apt-get install lynis
 sudo lynis audit system
 
