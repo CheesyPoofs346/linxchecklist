@@ -4,7 +4,7 @@ Install Fail2ban
 
 Protect against brute-force attacks:
 
-sudo apt-get install fail2ban
+<clipboard-copy>sudo apt-get install fail2ban<clipboard-copy>
 
 
 Configure /etc/fail2ban/jail. local as needed and start the service:
