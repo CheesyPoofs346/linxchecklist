@@ -476,3 +476,71 @@ Search the download history of the browser (e.g., Firefox) and locate the suspic
 
     ping <site_url>
 
+
+
+Some ai thing copy and paste USE AT YOUR OWN RISK
+
+          #!/bin/bash
+
+    # **WARNING: Review this script before running. Automated changes may have unintended consequences.**
+
+    # Update Package Lists & Upgrade System
+    echo "### 1. Updating Package Lists and Upgrading System ###"
+    sudo apt update -y && sudo apt full-upgrade -y
+
+    # **Security Configuration**
+
+    # 2. Enable Firewall (UFW)
+    echo "### 2. Enabling Firewall (UFW) ###"
+    sudo ufw enable
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
+    sudo ufw allow ssh
+    sudo ufw allow http
+    sudo ufw allow https
+    sudo ufw reload
+
+    # 3. Disable Root Login
+    echo "### 3. Disabling Root Login ###"
+    sudo sed -i 's/^PermitRootLogin.*/PermitRootLogin no/g' /etc/ssh/sshd_config
+    sudo service ssh restart
+
+    # 4. Enable SSH Protocol 2
+    echo "### 4. Ensuring SSH Protocol 2 is Enabled ###"
+    sudo sed -i 's/^Protocol.*/Protocol 2/g' /etc/ssh/sshd_config
+    sudo service ssh restart
+
+    # 5. Set Secure Permissions for /etc/passwd, /etc/group, and /etc/shadow
+    echo "### 5. Setting Secure Permissions for Sensitive Files ###"
+    sudo chmod 644 /etc/passwd
+    sudo chmod 644 /etc/group
+    sudo chmod 600 /etc/shadow
+
+    # **User Account Management**
+
+    # 6. Ensure No Empty Passwords
+    echo "### 6. Ensuring No Empty Passwords ###"
+    sudo awk -F: '($2 == "") {print $1}' /etc/shadow | while read user; do sudo passwd -l "$user"; done
+
+    # 7. Set Minimum Password Length (8 characters)
+    echo "### 7. Setting Minimum Password Length to 8 Characters ###"
+    sudo sed -i 's/^.*minimum.*/minlen = 8/g' /etc/pam.d/common-password
+
+    # **System Services and Configurations**
+
+    # 8. Disable Unneeded Services (Assumes a basic web server setup; adjust according to your needs)
+    echo "### 8. Disabling Unneeded Services (Basic Web Server Assumption) ###"
+    for service in avahi-daemon cups bluetooth; do
+        sudo systemctl stop "$service"
+        sudo systemctl disable "$service"
+    done
+
+    # 9. Enable System Logging (Assumes rsyslog)
+    echo "### 9. Ensuring System Logging is Enabled (rsyslog) ###"
+    sudo systemctl enable rsyslog
+    sudo systemctl start rsyslog
+
+    # **Final Check**
+    echo "### Script Execution Complete. Please Manually Verify System Compliance. ###"
+    echo "Reboot your system to ensure all changes are applied. Then, re-run the CyberPatriot checklist to verify compliance."
+
