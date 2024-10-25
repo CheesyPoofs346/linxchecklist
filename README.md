@@ -480,67 +480,106 @@ Search the download history of the browser (e.g., Firefox) and locate the suspic
 
 Some ai thing copy and paste USE AT YOUR OWN RISK
 
-          #!/bin/bash
+    #!/bin/bash
 
-    # **WARNING: Review this script before running. Automated changes may have unintended consequences.**
-
-    # Update Package Lists & Upgrade System
-    echo "### 1. Updating Package Lists and Upgrading System ###"
-    sudo apt update -y && sudo apt full-upgrade -y
-
-    # **Security Configuration**
-
-    # 2. Enable Firewall (UFW)
-    echo "### 2. Enabling Firewall (UFW) ###"
-    sudo ufw enable
-    sudo ufw default deny incoming
-    sudo ufw default allow outgoing
-    sudo ufw allow ssh
-    sudo ufw allow http
-    sudo ufw allow https
-    sudo ufw reload
-
-    # 3. Disable Root Login
-    echo "### 3. Disabling Root Login ###"
-    sudo sed -i 's/^PermitRootLogin.*/PermitRootLogin no/g' /etc/ssh/sshd_config
-    sudo service ssh restart
-
-    # 4. Enable SSH Protocol 2
-    echo "### 4. Ensuring SSH Protocol 2 is Enabled ###"
-    sudo sed -i 's/^Protocol.*/Protocol 2/g' /etc/ssh/sshd_config
-    sudo service ssh restart
-
-    # 5. Set Secure Permissions for /etc/passwd, /etc/group, and /etc/shadow
-    echo "### 5. Setting Secure Permissions for Sensitive Files ###"
-    sudo chmod 644 /etc/passwd
-    sudo chmod 644 /etc/group
-    sudo chmod 600 /etc/shadow
-
-    # **User Account Management**
-
-    # 6. Ensure No Empty Passwords
-    echo "### 6. Ensuring No Empty Passwords ###"
-    sudo awk -F: '($2 == "") {print $1}' /etc/shadow | while read user; do sudo passwd -l "$user"; done
-
-    # 7. Set Minimum Password Length (8 characters)
-    echo "### 7. Setting Minimum Password Length to 8 Characters ###"
-    sudo sed -i 's/^.*minimum.*/minlen = 8/g' /etc/pam.d/common-password
-
-    # **System Services and Configurations**
-
-    # 8. Disable Unneeded Services (Assumes a basic web server setup; adjust according to your needs)
-    echo "### 8. Disabling Unneeded Services (Basic Web Server Assumption) ###"
-    for service in avahi-daemon cups bluetooth; do
-        sudo systemctl stop "$service"
-        sudo systemctl disable "$service"
+    # CyberPatriot Linux Automation Script (Hypothetical Only!)
+    
+    # Log everything
+    LOGFILE="/var/log/cyberpatriot_fix.log"
+    exec > >(tee -i $LOGFILE)
+    exec 2>&1
+    
+    # 1. Update and upgrade all packages
+    echo "[*] Updating and upgrading packages..."
+    apt update && apt upgrade -y
+    
+    # 2. Ensure firewall is enabled
+    echo "[*] Ensuring UFW firewall is enabled..."
+    ufw enable
+    ufw default deny incoming
+    ufw default allow outgoing
+    ufw allow ssh
+    
+    # 3. Disable unnecessary services
+    echo "[*] Disabling unnecessary services..."
+    services_to_disable=(avahi-daemon cups bluetooth)
+    for service in "${services_to_disable[@]}"; do
+    systemctl stop $service
+    systemctl disable $service
+    echo "Disabled service: $service"
     done
+    
+    # 4. Secure SSH Configuration
+    echo "[*] Securing SSH..."
+    sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    systemctl restart sshd
+    
+    # 5. Remove unauthorized users
+    echo "[*] Removing unauthorized users..."
+    unauthorized_users=(guest games nobody)
+    for user in "${unauthorized_users[@]}"; do
+    if id "$user" &>/dev/null; then
+        userdel -r "$user"
+        echo "Removed user: $user"
+    fi
+    done
+    
+    # 6. Set password policies
+    echo "[*] Setting password policies..."
+    sed -i 's/PASS_MAX_DAYS.*/PASS_MAX_DAYS   90/' /etc/login.defs
+    sed -i 's/PASS_MIN_DAYS.*/PASS_MIN_DAYS   10/' /etc/login.defs
+    sed -i 's/PASS_WARN_AGE.*/PASS_WARN_AGE   7/' /etc/login.defs
+    echo "Password policies set."
+    
+    # 7. Secure /etc/hosts and permissions
+    echo "[*] Securing /etc/hosts file..."
+    chown root:root /etc/hosts
+    chmod 644 /etc/hosts
+    
+    # 8. Remove unnecessary software
+    echo "[*] Removing unnecessary software..."
+    apt purge -y telnet ftp
+    
+    # 9. Enable automatic updates
+    echo "[*] Enabling automatic updates..."
+    apt install -y unattended-upgrades
+    dpkg-reconfigure -plow unattended-upgrades
+    
+    # 10. Check for world-writable files
+    echo "[*] Checking for world-writable files and removing permissions..."
+    find / -type f -perm -o+w -exec chmod o-w {} \;
+    echo "Removed world-writable permissions."
+    
+    # 11. Ensure home directories have correct permissions
+    echo "[*] Securing home directories..."
+    chmod 700 /home/*
+    
+    # 12. Disable root login and use sudo
+    echo "[*] Disabling root login and setting up sudo..."
+    passwd -l root
+    usermod -aG sudo $(logname)
+    
+    # 13. Check and fix file permissions for sensitive files
+    echo "[*] Securing sensitive system files..."
+    chmod 600 /etc/shadow
+    chmod 644 /etc/passwd
+    chown root:root /etc/shadow /etc/passwd
+    
+    # 14. Review and clear logs (if needed)
+    echo "[*] Reviewing logs..."
+    # Note: In competition, you would NOT clear logs, but this shows awareness
+    cat /var/log/syslog | tail
+    
+    # 15. Perform antivirus scan (if applicable)
+    echo "[*] Running antivirus scan (if applicable)..."
+    # Example with clamav
+    if command -v clamscan &> /dev/null; then
+    clamscan -r / --exclude-dir=/sys/ --exclude-dir=/proc/
+    else
+    echo "ClamAV not installed. Skipping antivirus scan."
+    fi
+    
+    echo "[*] CyberPatriot automated fixes complete. Review log for details: $LOGFILE"
 
-    # 9. Enable System Logging (Assumes rsyslog)
-    echo "### 9. Ensuring System Logging is Enabled (rsyslog) ###"
-    sudo systemctl enable rsyslog
-    sudo systemctl start rsyslog
-
-    # **Final Check**
-    echo "### Script Execution Complete. Please Manually Verify System Compliance. ###"
-    echo "Reboot your system to ensure all changes are applied. Then, re-run the CyberPatriot checklist to verify compliance."
 
