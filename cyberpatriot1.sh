@@ -23,7 +23,7 @@ mainMenu() {
 	echo 'Script 1'
 	echo 'By Scooby Dooo'
 	echo
-	echo 'Welcome Dylan'!'
+	echo 'Welcome Dylan!'
 	echo
 	echo 'Input what you need to do. (0 for multiple)'
 	echo
