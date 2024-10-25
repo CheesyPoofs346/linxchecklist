@@ -481,105 +481,81 @@ Search the download history of the browser (e.g., Firefox) and locate the suspic
 Some ai thing copy and paste USE AT YOUR OWN RISK
 
     #!/bin/bash
-
-    # CyberPatriot Linux Automation Script (Hypothetical Only!)
     
-    # Log everything
-    LOGFILE="/var/log/cyberpatriot_fix.log"
-    exec > >(tee -i $LOGFILE)
-    exec 2>&1
+    ### WARNING: This is hypothetical, so don't actually do it, ya fucking idiot.
     
-    # 1. Update and upgrade all packages
-    echo "[*] Updating and upgrading packages..."
-    apt update && apt upgrade -y
+    # Ensure script runs as root
+    if [[ "$EUID" -ne 0 ]]; then
+      echo "Run this script as root or use sudo."
+      exit
+    fi
     
-    # 2. Ensure firewall is enabled
-    echo "[*] Ensuring UFW firewall is enabled..."
-    ufw enable
+    # Update the system
+    echo "Updating system packages..."
+    apt-get update -y && apt-get upgrade -y
+    
+    # Enforce strong password policies
+    echo "Configuring password policies..."
+    echo "password requisite pam_pwquality.so retry=3 minlen=12 difok=4 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1" >> /etc/pam.d/common-password
+    sed -i 's/PASS_MAX_DAYS.*/PASS_MAX_DAYS 90/g' /etc/login.defs
+    sed -i 's/PASS_MIN_DAYS.*/PASS_MIN_DAYS 7/g' /etc/login.defs
+    sed -i 's/PASS_WARN_AGE.*/PASS_WARN_AGE 14/g' /etc/login.defs
+    
+    # Secure SSH configuration
+    echo "Hardening SSH configuration..."
+    sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sed -i 's/^#X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config
+    sed -i 's/^#LogLevel.*/LogLevel VERBOSE/' /etc/ssh/sshd_config
+    systemctl restart sshd
+    
+    # Disable unnecessary services (you can add/remove as needed)
+    echo "Disabling unnecessary services..."
+    for service in telnet ftp rsh rexec rsyncd; do
+      systemctl disable $service 2>/dev/null
+      systemctl stop $service 2>/dev/null
+    done
+    
+    # Set secure permissions for sensitive files
+    echo "Setting secure permissions..."
+    chmod 600 /etc/shadow
+    chmod 644 /etc/passwd
+    chmod 644 /etc/group
+    chmod 600 /etc/gshadow
+    chown root:root /etc/shadow /etc/gshadow
+        
+    # Remove unauthorized sudoers
+    echo "Cleaning up unauthorized sudo users..."
+    for user in $(awk -F':' '{print $1}' /etc/passwd); do
+      if [[ "$(sudo -lU $user 2>/dev/null)" == *"(ALL : ALL) ALL"* ]]; then
+        deluser $user sudo
+      fi
+    done
+    
+    # Check and lock down world-writable files
+    echo "Finding and locking down world-writable files..."
+    find / -type f -perm /o+w -exec chmod o-w {} \; 2>/dev/null
+    
+    # Ensure firewall is active and basic rules are applied
+    echo "Configuring firewall rules..."
     ufw default deny incoming
     ufw default allow outgoing
     ufw allow ssh
+    ufw enable
     
-    # 3. Disable unnecessary services
-    echo "[*] Disabling unnecessary services..."
-    services_to_disable=(avahi-daemon cups bluetooth)
-    for service in "${services_to_disable[@]}"; do
-    systemctl stop $service
-    systemctl disable $service
-    echo "Disabled service: $service"
+    # Remove unauthorized users
+    echo "Removing unauthorized users..."
+    for user in $(awk -F':' '{print $1}' /etc/passwd); do
+      if [[ "$user" != "root" && "$user" != "$USER" && "$user" != "YOUR_TEAM_USER" ]]; then
+    userdel -r $user
+      fi
     done
-    
-    # 4. Secure SSH Configuration
-    echo "[*] Securing SSH..."
-    sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-    systemctl restart sshd
-    
-    # 5. Remove unauthorized users
-    echo "[*] Removing unauthorized users..."
-    unauthorized_users=(guest games nobody)
-    for user in "${unauthorized_users[@]}"; do
-    if id "$user" &>/dev/null; then
-        userdel -r "$user"
-        echo "Removed user: $user"
-    fi
-    done
-    
-    # 6. Set password policies
-    echo "[*] Setting password policies..."
-    sed -i 's/PASS_MAX_DAYS.*/PASS_MAX_DAYS   90/' /etc/login.defs
-    sed -i 's/PASS_MIN_DAYS.*/PASS_MIN_DAYS   10/' /etc/login.defs
-    sed -i 's/PASS_WARN_AGE.*/PASS_WARN_AGE   7/' /etc/login.defs
-    echo "Password policies set."
-    
-    # 7. Secure /etc/hosts and permissions
-    echo "[*] Securing /etc/hosts file..."
-    chown root:root /etc/hosts
-    chmod 644 /etc/hosts
-    
-    # 8. Remove unnecessary software
-    echo "[*] Removing unnecessary software..."
-    apt purge -y telnet ftp
-    
-    # 9. Enable automatic updates
-    echo "[*] Enabling automatic updates..."
-    apt install -y unattended-upgrades
-    dpkg-reconfigure -plow unattended-upgrades
-    
-    # 10. Check for world-writable files
-    echo "[*] Checking for world-writable files and removing permissions..."
-    find / -type f -perm -o+w -exec chmod o-w {} \;
-    echo "Removed world-writable permissions."
-    
-    # 11. Ensure home directories have correct permissions
-    echo "[*] Securing home directories..."
-    chmod 700 /home/*
-    
-    # 12. Disable root login and use sudo
-    echo "[*] Disabling root login and setting up sudo..."
-    passwd -l root
-    usermod -aG sudo $(logname)
-    
-    # 13. Check and fix file permissions for sensitive files
-    echo "[*] Securing sensitive system files..."
-    chmod 600 /etc/shadow
-    chmod 644 /etc/passwd
-    chown root:root /etc/shadow /etc/passwd
-    
-    # 14. Review and clear logs (if needed)
-    echo "[*] Reviewing logs..."
-    # Note: In competition, you would NOT clear logs, but this shows awareness
-    cat /var/log/syslog | tail
-    
-    # 15. Perform antivirus scan (if applicable)
-    echo "[*] Running antivirus scan (if applicable)..."
-    # Example with clamav
-    if command -v clamscan &> /dev/null; then
-    clamscan -r / --exclude-dir=/sys/ --exclude-dir=/proc/
-    else
-    echo "ClamAV not installed. Skipping antivirus scan."
-    fi
-    
-    echo "[*] CyberPatriot automated fixes complete. Review log for details: $LOGFILE"
 
-
+    # Configure audit logging
+    echo "Configuring audit logging for important files..."
+    echo "-w /etc/passwd -p wa -k passwd_changes" >> /etc/audit/audit.rules
+    echo "-w /etc/shadow -p wa -k shadow_changes" >> /etc/audit/audit.rules
+    echo "-w /var/log/ -p wa -k log_changes" >> /etc/audit/audit.rules
+    systemctl restart auditd
+    
+    echo "Script completed. Hypothetically, this is the cleanest your system has ever been."
