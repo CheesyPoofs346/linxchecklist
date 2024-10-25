@@ -1,3 +1,7 @@
+FIX SCRIPT 3 IT SOLD
+
+
+
 # linxchecklist
 
 Install Fail2ban
