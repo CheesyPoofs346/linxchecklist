@@ -478,87 +478,72 @@ Search the download history of the browser (e.g., Firefox) and locate the suspic
 
 
 
-Some ai thing copy and paste USE AT YOUR OWN RISK
+Some AI thing copy and paste USE AT YOUR OWN RISK
 
     #!/bin/bash
 
-    ### WARNING: This is hypothetical, so don't actually do it, ya fucking idiot.
+    # Update and Upgrade the System
+    echo "Updating and upgrading system..."
+    sudo apt-get update -y && sudo apt-get upgrade -y
 
-    # Ensure script runs as root
-    if [[ "$EUID" -ne 0 ]]; then
-            echo "Run this script as root or use sudo."
-        exit
-    fi
+    # Check and Enable UFW Firewall
+    echo "Setting up firewall..."
+    sudo ufw enable
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
 
-    # Update the system
-    echo "Updating system packages..."
-    apt-get update -y && apt-get upgrade -y
-
-    # Enforce strong password policies
-    echo "Configuring password policies..."
-    echo "password requisite pam_pwquality.so retry=3 minlen=12 difok=4 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1" >> /etc/pam.d/common-password
-    sed -i 's/PASS_MAX_DAYS.*/PASS_MAX_DAYS 90/g' /etc/login.defs
-    sed -i 's/PASS_MIN_DAYS.*/PASS_MIN_DAYS 7/g' /etc/login.defs
-    sed -i 's/PASS_WARN_AGE.*/PASS_WARN_AGE 14/g' /etc/login.defs
-
-    # Secure SSH configuration
-    echo "Hardening SSH configuration..."
-    sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-    sed -i 's/^#X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config
-    sed -i 's/^#LogLevel.*/LogLevel VERBOSE/' /etc/ssh/sshd_config
-    systemctl restart sshd
-
-    # Disable unnecessary services (you can add/remove as needed)
-    echo "Disabling unnecessary services..."
-    for service in telnet ftp rsh rexec rsyncd; do
-        systemctl disable $service 2>/dev/null
-        systemctl stop $service 2>/dev/null
-    done
-
-    # Set secure permissions for sensitive files
-    echo "Setting secure permissions..."
-    chmod 600 /etc/shadow
-    chmod 644 /etc/passwd
-    chmod 644 /etc/group
-    chmod 600 /etc/gshadow
-    chown root:root /etc/shadow /etc/gshadow
-
-    # Remove unauthorized sudoers
-    echo "Cleaning up unauthorized sudo users..."
-    for user in $(awk -F':' '{print $1}' /etc/passwd); do
-        if [[ "$(sudo -lU $user 2>/dev/null)" == *"(ALL : ALL) ALL"* ]]; then
-            deluser $user sudo
-    fi
-    done
-
-    # Check and lock down world-writable files
-    echo "Finding and locking down world-writable files..."
-    find / -type f -perm /o+w -exec chmod o-w {} \; 2>/dev/null
-
-    # Ensure firewall is active and basic rules are applied
-    echo "Configuring firewall rules..."
-    ufw default deny incoming
-    ufw default allow outgoing
-    ufw allow ssh
-    ufw enable
-
-    # Remove unauthorized users
-    echo "Removing unauthorized users..."
-    for user in $(awk -F':' '{print $1}' /etc/passwd); do
-        if [[ "$user" != "root" && "$user" != "$USER" && "$user" != "YOUR_TEAM_USER" ]]; then
-            userdel -r $user
-        fi
-    done
-
-    # Configure audit logging
-    echo "Configuring audit logging for important files..."
-    echo "-w /etc/passwd -p wa -k passwd_changes" >> /etc/audit/audit.rules
-    echo "-w /etc/shadow -p wa -k shadow_changes" >> /etc/audit/audit.rules
-    echo "-w /var/log/ -p wa -k log_changes" >> /etc/audit/audit.rules
-    systemctl restart auditd
-
-    echo "Script completed. Hypothetically, this is the cleanest your system has ever been."
-
+    # Install Fail2Ban
+    echo "Installing Fail2Ban for intrusion prevention..."
+    sudo apt-get install fail2ban -y
+    sudo systemctl enable fail2ban
+    sudo systemctl start fail2ban
     
-    echo "Script completed. Hypothetically, this is the cleanest your system has ever been."
+    # Check and Disable Unnecessary Services
+    echo "Disabling unnecessary services..."
+    services=("telnet" "rsh-server" "nfs-kernel-server" "vsftpd" "avahi-daemon")
+    for service in "${services[@]}"
+    do
+    sudo systemctl stop $service
+    sudo systemctl disable $service
+    done
+
+    # Secure SSH Configuration
+    echo "Securing SSH configuration..."
+    sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+    sudo sed -i 's/PermitEmptyPasswords yes/PermitEmptyPasswords no/' /etc/ssh/sshd_config
+    sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+
+    # Enforce Strong Password Policies
+    echo "Enforcing strong password policies..."
+    sudo apt-get install libpam-pwquality -y
+    sudo sed -i '/pam_unix.so/s/$/ remember=5 minlen=12/' /etc/pam.d/common-password
+
+    # Remove Unnecessary Packages
+    echo "Removing unnecessary packages..."
+    sudo apt-get autoremove -y
+    sudo apt-get autoclean -y
+
+    # Check for World-Writable Files
+    echo "Checking for world-writable files..."
+    sudo find / -xdev -type f -perm -0002 -exec chmod o-w {} \;
+
+    # Set File Permissions
+    echo "Setting secure file permissions..."
+    sudo chmod 600 /etc/shadow
+    sudo chmod 644 /etc/passwd
+
+    # Configure Automatic Security Updates
+    echo "Configuring automatic security updates..."
+    sudo apt-get install unattended-upgrades -y
+    sudo dpkg-reconfigure --priority=low unattended-upgrades
+
+    # Ensure No Unnecessary Users Exist
+    echo "Checking for unnecessary users..."
+    users_to_remove=("games" "gnats" "irc" "list" "news" "uucp" "nobody")
+    for user in "${users_to_remove[@]}"
+    do
+        sudo deluser --remove-home $user
+    done
+
+    echo "Linux hardening complete! Please review the system for any additional manual checks."
