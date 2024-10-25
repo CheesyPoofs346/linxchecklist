@@ -481,26 +481,26 @@ Search the download history of the browser (e.g., Firefox) and locate the suspic
 Some ai thing copy and paste USE AT YOUR OWN RISK
 
     #!/bin/bash
-    
+
     ### WARNING: This is hypothetical, so don't actually do it, ya fucking idiot.
-    
+
     # Ensure script runs as root
     if [[ "$EUID" -ne 0 ]]; then
-      echo "Run this script as root or use sudo."
-      exit
+            echo "Run this script as root or use sudo."
+        exit
     fi
-    
+
     # Update the system
     echo "Updating system packages..."
     apt-get update -y && apt-get upgrade -y
-    
+
     # Enforce strong password policies
     echo "Configuring password policies..."
     echo "password requisite pam_pwquality.so retry=3 minlen=12 difok=4 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1" >> /etc/pam.d/common-password
     sed -i 's/PASS_MAX_DAYS.*/PASS_MAX_DAYS 90/g' /etc/login.defs
     sed -i 's/PASS_MIN_DAYS.*/PASS_MIN_DAYS 7/g' /etc/login.defs
     sed -i 's/PASS_WARN_AGE.*/PASS_WARN_AGE 14/g' /etc/login.defs
-    
+
     # Secure SSH configuration
     echo "Hardening SSH configuration..."
     sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
@@ -508,14 +508,14 @@ Some ai thing copy and paste USE AT YOUR OWN RISK
     sed -i 's/^#X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config
     sed -i 's/^#LogLevel.*/LogLevel VERBOSE/' /etc/ssh/sshd_config
     systemctl restart sshd
-    
+
     # Disable unnecessary services (you can add/remove as needed)
     echo "Disabling unnecessary services..."
     for service in telnet ftp rsh rexec rsyncd; do
-      systemctl disable $service 2>/dev/null
-      systemctl stop $service 2>/dev/null
+        systemctl disable $service 2>/dev/null
+        systemctl stop $service 2>/dev/null
     done
-    
+
     # Set secure permissions for sensitive files
     echo "Setting secure permissions..."
     chmod 600 /etc/shadow
@@ -523,32 +523,32 @@ Some ai thing copy and paste USE AT YOUR OWN RISK
     chmod 644 /etc/group
     chmod 600 /etc/gshadow
     chown root:root /etc/shadow /etc/gshadow
-        
+
     # Remove unauthorized sudoers
     echo "Cleaning up unauthorized sudo users..."
     for user in $(awk -F':' '{print $1}' /etc/passwd); do
-      if [[ "$(sudo -lU $user 2>/dev/null)" == *"(ALL : ALL) ALL"* ]]; then
-        deluser $user sudo
-      fi
+        if [[ "$(sudo -lU $user 2>/dev/null)" == *"(ALL : ALL) ALL"* ]]; then
+            deluser $user sudo
+    fi
     done
-    
+
     # Check and lock down world-writable files
     echo "Finding and locking down world-writable files..."
     find / -type f -perm /o+w -exec chmod o-w {} \; 2>/dev/null
-    
+
     # Ensure firewall is active and basic rules are applied
     echo "Configuring firewall rules..."
     ufw default deny incoming
     ufw default allow outgoing
     ufw allow ssh
     ufw enable
-    
+
     # Remove unauthorized users
     echo "Removing unauthorized users..."
     for user in $(awk -F':' '{print $1}' /etc/passwd); do
-      if [[ "$user" != "root" && "$user" != "$USER" && "$user" != "YOUR_TEAM_USER" ]]; then
-    userdel -r $user
-      fi
+        if [[ "$user" != "root" && "$user" != "$USER" && "$user" != "YOUR_TEAM_USER" ]]; then
+            userdel -r $user
+        fi
     done
 
     # Configure audit logging
@@ -557,5 +557,8 @@ Some ai thing copy and paste USE AT YOUR OWN RISK
     echo "-w /etc/shadow -p wa -k shadow_changes" >> /etc/audit/audit.rules
     echo "-w /var/log/ -p wa -k log_changes" >> /etc/audit/audit.rules
     systemctl restart auditd
+
+    echo "Script completed. Hypothetically, this is the cleanest your system has ever been."
+
     
     echo "Script completed. Hypothetically, this is the cleanest your system has ever been."
