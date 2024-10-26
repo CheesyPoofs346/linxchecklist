@@ -25,7 +25,7 @@ mainMenu() {
 	echo
 	echo 'Welcome Dylan'
 	echo
-	echo 'What do you need done'
+	echo 'What do you need done?'
 	echo
 	for ((i=0; i<${#listOperations[@]}; i++)); do
 		echo ${listOperations[i]}
