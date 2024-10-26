@@ -23,9 +23,9 @@ mainMenu() {
 	echo 'Script 1'
 	echo 'By Scooby Dooo'
 	echo
-	echo 'Welcome Dylan!'
+	echo 'Welcome Dylan'
 	echo
-	echo 'Input what you need done'
+	echo 'What do you need done'
 	echo
 	for ((i=0; i<${#listOperations[@]}; i++)); do
 		echo ${listOperations[i]}
