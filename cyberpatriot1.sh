@@ -103,10 +103,10 @@ activateMultiple() {
 	echo "Each command will be documented then activated in order."
 	echo
 	echo "You can type 0 to start the operations."
-	echo "You can  run all functions by typing -1."
+	echo "You can  run all functions by typing -1. DONT RUN THIS IT BREAKS THE COMPUTER"
 	echo
 	for ((;;)) do
-		echo "Input the operation you wish to do. (-1 for auto, 0 to Start)"
+		echo "Input the operation you wish to do. (-1 for auto, 0 to Start)DONT RUN THIS IT BREAKS THE COMPUTER"
 		read input
 		echo
 		if [[ ! $input  == 0 ]] && [ ! $input == -1 ]; then
