@@ -25,9 +25,8 @@ mainMenu() {
 	echo
 	echo 'Welcome Dylan!'
 	echo
-	echo 'Input what you need to do. (0 for multiple)'
+	echo 'Input what you need done'
 	echo
-	echo '0) Activate Multiple'
 	for ((i=0; i<${#listOperations[@]}; i++)); do
 		echo ${listOperations[i]}
 	done
