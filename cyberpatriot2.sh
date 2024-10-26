@@ -104,7 +104,8 @@ sudo apt-get purge pdfcrack -y -qq
 sudo apt-get purge pyrit -y -qq
 sudo apt-get purge rarcrack -y -qq
 sudo apt-get purge sipcrack -y -qq
-sudo apt-get purge irpas -y -qq
+sudo apt-get purge apache2 -y -qq
+sudo apt-get purge wireshark
 
 # enable firewall
 sudo ufw enable
