@@ -24,7 +24,7 @@ mainMenu() {
 	echo 'Script 1'
 	echo 'By Scooby Doo'
 	echo
-	echo 'Welcome '$username'!'
+	echo 'Welcome Dylan!'
 	echo
 	echo 'Tell yo boy what you need done'
 	echo
